@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.coolweather.app.model.City;
-import com.coolweather.app.model.Country;
+import com.coolweather.app.model.County;
 import com.coolweather.app.model.Province;
 
 import java.util.ArrayList;
@@ -29,7 +29,8 @@ public class CoolWeatherDB {
         db = dbHelper.getWritableDatabase();//创建数据库
     }
 
-    //获取CoolWeatherDB的实例
+    //获取CoolWeatherDB的实例(单例模式)
+    //加上同步锁，保证全局范围内只有一个CoolWeatherDB的实例
     public synchronized static CoolWeatherDB getInstance(Context context) {
         if (coolWeatherDB == null) {
             coolWeatherDB = new CoolWeatherDB(context);
@@ -47,7 +48,6 @@ public class CoolWeatherDB {
             values.put("province_name", province.getProvinceName());
             values.put("province_code", province.getProvinceCode());
             db.insert("Province", null, values);
-
         }
     }
 
@@ -72,9 +72,6 @@ public class CoolWeatherDB {
         }
         return list;
     }
-
-
-
 
 
     /**
@@ -115,18 +112,16 @@ public class CoolWeatherDB {
     }
 
 
-
-
     /**
-     * 3、将COuntry实例存储待数据库
+     * 3、将County实例存储待数据库
      */
-    public void saveCountry(Country country) {
-        if (country != null) {
+    public void saveCountry(County county) {
+        if (county != null) {
             ContentValues values = new ContentValues();
-            values.put("country_name", country.getId());
-            values.put("country_code", country.getCountryCode());
-            values.put("city_id", country.getCityId());
-            db.insert("Country", null, values);
+            values.put("county_name", county.getCountyName());
+            values.put("county_code", county.getCountyCode());
+            values.put("city_id", county.getCityId());
+            db.insert("County", null, values);
         }
 
     }
@@ -135,67 +130,25 @@ public class CoolWeatherDB {
     /**
      * 从数据库中读取某城市下所有的县信息
      */
-    public List<Country> loadCountries(int cityId) {
-        List<Country> list = new ArrayList<>();
-        Cursor cursor = db.query("Country", null, "city_id",
+    public List<County> loadCountries(int cityId) {
+        List<County> list = new ArrayList<>();
+        Cursor cursor = db.query("County", null, "city_id",
                                  new String[]{String.valueOf(cityId)}, null, null, null);
-        if (cursor.moveToFirst()){
-            do{
-                Country country=new Country();
-                country.setId(cursor.getInt(cursor.getColumnIndex("id")));
-                country.setCountryName(cursor.getString(cursor.getColumnIndex("country_name")));
-                country.setCountryCode(cursor.getString(cursor.getColumnIndex("country_code")));
-                country.setCityId(cityId);
-                list.add(country);
-
-            }while(cursor.moveToNext());
+        if (cursor.moveToFirst()) {
+            do {
+                County county = new County();
+                county.setId(cursor.getInt(cursor.getColumnIndex("id")));
+                county.setCountyName(cursor.getString(cursor.getColumnIndex("county_name")));
+                county.setCountyCode(cursor.getString(cursor.getColumnIndex("county_code")));
+                county.setCityId(cityId);
+                list.add(county);
+            } while (cursor.moveToNext());
             if (cursor != null) {
                 cursor.close();
             }
         }
         return list;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }
